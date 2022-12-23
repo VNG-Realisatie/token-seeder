@@ -1,11 +1,11 @@
 # Token Seeder
 
-| Key      | Value                                                                                    |
-|----------|------------------------------------------------------------------------------------------|
-| Version  | 1.0.0                                                                                    |
-| Source   | https://github.com/VNG-Realisatie/token-seeder                                           |
-| Keywords | ZGW, tooling                                                                             |
-| Related | https://github.com/VNG-Realisatie/token-issuer, https://gitlab.com/commonground/ri/infra/ |
+| Key      | Value                                                                                       |
+|----------|---------------------------------------------------------------------------------------------|
+| Version  | 1.0.0                                                                                       |
+| Source   | https://github.com/VNG-Realisatie/token-seeder                                              |
+| Keywords | ZGW, tooling                                                                                |
+| Related | https://github.com/VNG-Realisatie/token-issuer, https://github.com/VNG-Realisatie/zgw-infra |
 
 
 ## Introductie
@@ -19,7 +19,7 @@ Deze tokens dienen genereerd en ingericht te worden in de verschillende API's. O
 
 Bij het opstarten van de container wordt de database gevuld met gegevens die nodig zijn om zowel de `token-issuer` als de apis intern te laten werken
 en te laten authenticeren. De token-seeder kan het best gebruikt worden als `init-container` binnen een `helm` deployment. 
-Een [voorbeeld](https://gitlab.com/commonground/ri/infra/-/blob/main/helm/ri/charts/zrc/templates/deployment.yaml) kan hier gevonden worden.
+Een [voorbeeld](https://github.com/VNG-Realisatie/zgw-infra/blob/main/helm/ri/charts/zrc/templates/deployment.yaml) kan hier gevonden worden.
 
 
 ## Environmental Variables
