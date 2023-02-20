@@ -99,10 +99,24 @@ def create_auth_config(auth_service, component, db_connection):
         print(
             f"adding authorizations_authorizationsconfig for component: {component} with api_root {api_root}"
         )
-        cursor.execute(
-            "INSERT INTO authorizations_authorizationsconfig (api_root, component)  VALUES(%s, %s)",
-            (api_root, component),
-        )
+        query = "SELECT * FROM authorizations_authorizationsconfig"
+
+        cursor.execute(query)
+        records = cursor.fetchall()
+        if len(records) == 1:
+            print("a record already exists so updating instead of creating")
+            print(records)
+            cursor.execute(
+                """ UPDATE authorizations_authorizationsconfig
+                        SET api_root = %s
+                        WHERE id = %s""",
+                (api_root, 1),
+            )
+        else:
+            cursor.execute(
+                "INSERT INTO authorizations_authorizationsconfig (id, api_root, component)  VALUES(1, %s, %s)",
+                (api_root, component),
+            )
         db_connection.commit()
         cursor.close()
     except (Exception, psycopg2.DatabaseError) as error:
