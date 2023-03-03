@@ -57,10 +57,12 @@ def create_authenticated_app(
         print(error)
 
 
-def create_common_api_credential(api_config, client_id, secret, db_connection):
+def create_common_api_credential(api_config, client_id, secret, namespace, db_connection):
     """
     Creates all the services with endpoints in the vng_api_common_apicredential table
     So that each api trusts all the other internal apis
+    The internal service address is also added so you can use the full internal address since
+    the short version will fail some URL regexes
     :param api_config: a list of api names and endpoints (provided by config.ini)
     :param client_id: a client_id part of the JWT
     :param secret: the secret to identify the client_id
@@ -73,9 +75,16 @@ def create_common_api_credential(api_config, client_id, secret, db_connection):
         for name in api_config:
             print(f"label set to api: {name}")
             print(f"api_root set to: {api_config[name]}")
+            internal_address = f"http://{name}.{namespace}.svc.cluster.local:8000/api/v1"
+            print(f"internal_address set to: {internal_address}")
             cursor.execute(
                 "INSERT INTO vng_api_common_apicredential (api_root, client_id, secret, label, user_id, user_representation)  VALUES(%s, %s, %s, %s, %s, %s)",
                 (api_config[name], client_id, secret, name, client_id, client_id),
+            )
+
+            cursor.execute(
+                "INSERT INTO vng_api_common_apicredential (api_root, client_id, secret, label, user_id, user_representation)  VALUES(%s, %s, %s, %s, %s, %s)",
+                (internal_address, client_id, secret, name, client_id, client_id),
             )
         db_connection.commit()
         cursor.close()
@@ -133,6 +142,9 @@ if __name__ == "__main__":
     DB_USER = os.environ.get("DB_USER", "postgres")
     DB_PASSWORD = os.environ.get("DB_PASSWORD", "supersecretpassword")
 
+    #namespace
+    NAMESPACE = os.environ.get("NAMESPACE", "vng")
+
     # Identifier for the token-issuer
     IDENTIFIER = os.environ.get("TOKEN_ISSUER_NAME", "token_issuer_demo")
     # Secret for the token-issuer
@@ -182,6 +194,7 @@ if __name__ == "__main__":
         api_config=api_config,
         client_id=SERVICE_NAME,
         secret=INTERNAL_API_SECRET,
+        namespace=NAMESPACE,
         db_connection=connection,
     )
 
