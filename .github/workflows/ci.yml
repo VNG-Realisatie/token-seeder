@@ -21,7 +21,6 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            vngr/token-seeder
             ghcr.io/VNG-Realisatie/token-seeder
           # generate Docker tags based on the following events/attributes
           tags: |
@@ -42,10 +41,8 @@ jobs:
 
       -
         name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
