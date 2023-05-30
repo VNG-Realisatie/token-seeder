@@ -3,9 +3,12 @@ name: ci
 on:
   push:
     branches:
-      - 'main'
+      - "main"
     tags:
       - "v*.*.*"
+  pull_request:
+    branches:
+      - "main"
 
 jobs:
   push-images:
