@@ -57,7 +57,7 @@ def create_authenticated_app(
         print(error)
 
 
-def create_common_api_credential(api_config, client_id, secret, namespace, db_connection):
+def create_common_api_credential(api_config, internal_config, client_id, secret, namespace, db_connection):
     """
     Creates all the services with endpoints in the vng_api_common_apicredential table
     So that each api trusts all the other internal apis
@@ -72,20 +72,27 @@ def create_common_api_credential(api_config, client_id, secret, namespace, db_co
     try:
         print(f"adding vng_api_common_apicredential with client_id: {client_id}")
         cursor = db_connection.cursor()
-        for name in api_config:
+        for name in internal_config:
             print(f"label set to api: {name}")
-            print(f"api_root set to: {api_config[name]}")
+            print(f"api_root set to: {internal_config[name]}")
             internal_address = f"http://{name}.{namespace}.svc.cluster.local:8000/api/v1"
             print(f"internal_address set to: {internal_address}")
             cursor.execute(
                 "INSERT INTO vng_api_common_apicredential (api_root, client_id, secret, label, user_id, user_representation)  VALUES(%s, %s, %s, %s, %s, %s)",
-                (api_config[name], client_id, secret, name, client_id, client_id),
+                (internal_config[name], client_id, secret, name, client_id, client_id),
             )
 
             cursor.execute(
                 "INSERT INTO vng_api_common_apicredential (api_root, client_id, secret, label, user_id, user_representation)  VALUES(%s, %s, %s, %s, %s, %s)",
                 (internal_address, client_id, secret, name, client_id, client_id),
             )
+
+        for n in api_config:
+            cursor.execute(
+                "INSERT INTO vng_api_common_apicredential (api_root, client_id, secret, label, user_id, user_representation)  VALUES(%s, %s, %s, %s, %s, %s)",
+                (api_config[n], client_id, secret, n, client_id, client_id),
+            )
+
         db_connection.commit()
         cursor.close()
     except (Exception, psycopg2.DatabaseError) as error:
@@ -134,7 +141,7 @@ def create_auth_config(auth_service, component, db_connection):
 
 if __name__ == "__main__":
     # variables will be read from the config.ini
-    env = os.environ.get("ENV", "kubernetes")
+    env = os.environ.get("ENV", "test")
 
     # variables related to the db connection
     DB_NAME = os.environ.get("DB_NAME", "zrc")
@@ -166,6 +173,7 @@ if __name__ == "__main__":
 
     config = configparser.ConfigParser()
     config.read("config.ini")
+    internal_config = config['kubernetes']
     api_config = config[env]
 
     print(f"seeding db {DB_NAME}")
@@ -192,6 +200,7 @@ if __name__ == "__main__":
     # add all endpoints with the secret so that the SERVICE_NAME will trust the other apis
     create_common_api_credential(
         api_config=api_config,
+        internal_config=internal_config,
         client_id=SERVICE_NAME,
         secret=INTERNAL_API_SECRET,
         namespace=NAMESPACE,
